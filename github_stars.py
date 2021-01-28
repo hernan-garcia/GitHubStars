@@ -12,7 +12,7 @@ class GitHubStars(object):
     Collects the list of repositories with highest number of stars.
     """
     QUERY_LIMIT = 1000  # GitHub API search results limit
-    THRESHOLD = 1 << 20  # when the stars probe exceeds this limit, we stop
+    THRESHOLD = 1 << 2  # when the stars probe exceeds this limit, we stop
 
     def __init__(self, login_or_token, password=None, **kwargs):
         self._start_index = kwargs.pop("start", 50)
@@ -61,26 +61,31 @@ class GitHubStars(object):
                     "stars:%d..%d" % (start, start + offset)).totalCount
             except RateLimitExceededException:
                 print("Hit rate limit, sleeping 60 seconds...")
+                break
                 sleep(60)
-                continue
+                #continue
             except Exception as e:
                 print("type(%s): %s" % (type(e), e))
                 sleep(0.1)
-                continue
+                #continue
+                break
             if m >= self.THRESHOLD and length == 0:
                 break
             if m < self.THRESHOLD and length < self.QUERY_LIMIT:
                 offset += m
                 m *= 2
+                break
             elif length > 2 * self.QUERY_LIMIT and offset == 0:
                 print("skipping %d - too many results (%d)" % (start, length))
                 start += 1
+                break
             else:
                 step = offset - m // 2
                 plan.append((start, start + step))
                 print("p %d..%d" % plan[-1])
                 m = max(1, m // 2)
                 start += step + 1
+                break
         self._api.per_page = per_page
         return plan
 
@@ -160,72 +165,8 @@ class GitHubStars(object):
 
 
 def repo_to_dict(r):
-    return {
-        "archive_url": r.archive_url,
-        "assignees_url": r.assignees_url,
-        "blobs_url": r.blobs_url,
-        "branches_url": r.branches_url,
-        "clone_url": r.clone_url,
-        "collaborators_url": r.collaborators_url,
-        "comments_url": r.comments_url,
-        "commits_url": r.commits_url,
-        "compare_url": r.compare_url,
-        "contents_url": r.contents_url,
-        "contributors_url": r.contributors_url,
-        "created_at": str(r.created_at),
-        "default_branch": r.default_branch,
-        "description": r.description,
-        "downloads_url": r.downloads_url,
-        "events_url": r.events_url,
-        "fork": r.fork,
-        "forks": r.forks,
-        "forks_count": r.forks_count,
-        "forks_url": r.forks_url,
-        "full_name": r.full_name,
-        "git_commits_url": r.git_commits_url,
-        "git_refs_url": r.git_refs_url,
-        "git_tags_url": r.git_tags_url,
-        "git_url": r.git_url,
-        "has_downloads": r.has_downloads,
-        "has_issues": r.has_issues,
-        "has_wiki": r.has_wiki,
-        "homepage": r.homepage,
-        "hooks_url": r.hooks_url,
-        "html_url": r.html_url,
-        "id": r.id,
-        "issue_comment_url": r.issue_comment_url,
-        "issue_events_url": r.issue_events_url,
-        "issues_url": r.issues_url,
-        "keys_url": r.keys_url,
-        "labels_url": r.labels_url,
-        "language": r.language,
-        "languages_url": r.languages_url,
-        "merges_url": r.merges_url,
-        "milestones_url": r.milestones_url,
-        "mirror_url": r.mirror_url,
-        "name": r.name,
-        "notifications_url": r.notifications_url,
-        "open_issues": r.open_issues,
-        "open_issues_count": r.open_issues_count,
-        "owner": r.owner.login,
-        "pulls_url": r.pulls_url,
-        "pushed_at": str(r.pushed_at),
-        "size": r.size,
-        "ssh_url": r.ssh_url,
-        "stargazers_count": r.stargazers_count,
-        "stargazers_url": r.stargazers_url,
-        "statuses_url": r.statuses_url,
-        "subscribers_url": r.subscribers_url,
-        "subscription_url": r.subscription_url,
-        "svn_url": r.svn_url,
-        "tags_url": r.tags_url,
-        "teams_url": r.teams_url,
-        "trees_url": r.trees_url,
-        "updated_at": str(r.updated_at),
-        "url": r.url,
-        "watchers": r.watchers,
-        "watchers_count": r.watchers_count,
-    }
+
+    return {        "archive_url": r.archive_url,        "assignees_url": r.assignees_url,        "blobs_url": r.blobs_url,        "branches_url": r.branches_url,        "clone_url": r.clone_url,        "collaborators_url": r.collaborators_url,        "comments_url": r.comments_url,        "commits_url": r.commits_url,        "compare_url": r.compare_url,        "contents_url": r.contents_url,        "contributors_url": r.contributors_url,        "created_at": str(r.created_at),        "default_branch": r.default_branch,        "description": r.description,        "downloads_url": r.downloads_url,        "events_url": r.events_url,        "fork": r.fork,        "forks": r.forks,        "forks_count": r.forks_count,        "forks_url": r.forks_url,        "full_name": r.full_name,        "git_commits_url": r.git_commits_url,        "git_refs_url": r.git_refs_url,        "git_tags_url": r.git_tags_url,        "git_url": r.git_url,        "has_downloads": r.has_downloads,        "has_issues": r.has_issues,        "has_wiki": r.has_wiki,        "homepage": r.homepage,        "hooks_url": r.hooks_url,        "html_url": r.html_url,        "id": r.id,        "issue_comment_url": r.issue_comment_url,        "issue_events_url": r.issue_events_url,        "issues_url": r.issues_url,        "keys_url": r.keys_url,        "labels_url": r.labels_url,        "language": r.language,        "languages_url": r.languages_url,        "merges_url": r.merges_url,        "milestones_url": r.milestones_url,        "mirror_url": r.mirror_url,        "name": r.name,        "notifications_url": r.notifications_url,        "open_issues": r.open_issues,        "open_issues_count": r.open_issues_count,        "owner": r.owner.login,        "pulls_url": r.pulls_url,        "pushed_at": str(r.pushed_at),        "size": r.size,        "ssh_url": r.ssh_url,        "stargazers_count": r.stargazers_count,        "stargazers_url": r.stargazers_url,        "statuses_url": r.statuses_url,        "subscribers_url": r.subscribers_url,        "subscription_url": r.subscription_url,        "svn_url": r.svn_url,        "tags_url": r.tags_url,        "teams_url": r.teams_url,        "trees_url": r.trees_url,        "updated_at": str(r.updated_at),        "url": r.url,        "watchers": r.watchers,        "watchers_count": r.watchers_count,        }
 
 
 def parse_args():
@@ -265,7 +206,22 @@ def main():
     elif args.output.endswith(".json"):
         with open(args.output, "w") as fout:
             json_repos = [repo_to_dict(r) for r in repos]
-            json.dump(json_repos, fout, indent=2, sort_keys=True)
+
+#data = [
+#    {"key01":"value","key02":"value"},
+#    {"key11":"value","key12":"value"},
+#    {"key21":"value","key22":"value"}
+#]
+
+#with open('file.json', 'w') as fp:
+#    fp.write(
+#        '[' +
+#        ',\n'.join(json.dumps(i) for i in data) +
+#        ']\n')
+
+            fout.write(
+                '\n'.join(json.dumps(i) for i in json_repos)
+            )
     else:
         raise ValueError("Only JSON or pickle output formats are supported. "
                          "So happy you know it after spending hours fetching "
